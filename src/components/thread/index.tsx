@@ -159,6 +159,28 @@ export function Thread() {
     setInput("");
   };
 
+  const handleUpdate = (e: FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+    setFirstTokenReceived(false);
+
+    const newHumanMessage: Message = {
+      id: uuidv4(),
+      type: "human",
+      content: input,
+    };
+
+    stream.submit(
+      { messages: [newHumanMessage] },
+      {
+        streamMode: ["values"],
+        multitaskStrategy: "interrupt",
+      },
+    );
+
+    setInput("");
+  };
+
   const handleRegenerate = (
     parentCheckpoint: Checkpoint | null | undefined,
   ) => {
@@ -332,7 +354,7 @@ export function Thread() {
 
                 <div className="bg-muted rounded-2xl border shadow-xs mx-auto mb-8 w-full max-w-3xl relative z-10">
                   <form
-                    onSubmit={handleSubmit}
+                    onSubmit={isLoading ? handleUpdate : handleSubmit}
                     className="grid grid-rows-[1fr_auto] gap-2 max-w-3xl mx-auto"
                   >
                     <textarea
@@ -346,7 +368,7 @@ export function Thread() {
                           form?.requestSubmit();
                         }
                       }}
-                      placeholder="Type your message..."
+                      placeholder={isLoading ? "Update your message..." : "Type your message..."}
                       className="p-3.5 pb-0 border-none bg-transparent field-sizing-content shadow-none ring-0 outline-none focus:outline-none focus:ring-0 resize-none"
                     />
 
@@ -377,7 +399,7 @@ export function Thread() {
                           className="transition-all shadow-md"
                           disabled={isLoading || !input.trim()}
                         >
-                          Send
+                          {isLoading ? "Update" : "Send"}
                         </Button>
                       )}
                     </div>
