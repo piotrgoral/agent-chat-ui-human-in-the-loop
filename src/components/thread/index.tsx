@@ -20,6 +20,7 @@ import {
   PanelRightOpen,
   PanelRightClose,
   SquarePen,
+  ChevronDown,
 } from "lucide-react";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
@@ -28,6 +29,14 @@ import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+type MultitaskStrategy = "interrupt" | "reject" | "rollback" | "enqueue";
 
 function StickyToBottomContent(props: {
   content: ReactNode;
@@ -159,9 +168,7 @@ export function Thread() {
     setInput("");
   };
 
-  const handleUpdate = (e: FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handleUpdate = (strategy: string) => {
     setFirstTokenReceived(false);
 
     const newHumanMessage: Message = {
@@ -174,7 +181,7 @@ export function Thread() {
       { messages: [newHumanMessage] },
       {
         streamMode: ["values"],
-        multitaskStrategy: "interrupt",
+        multitaskStrategy: strategy as MultitaskStrategy,
       },
     );
 
@@ -354,7 +361,10 @@ export function Thread() {
 
                 <div className="bg-muted rounded-2xl border shadow-xs mx-auto mb-8 w-full max-w-3xl relative z-10">
                   <form
-                    onSubmit={isLoading ? handleUpdate : handleSubmit}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }}
                     className="grid grid-rows-[1fr_auto] gap-2 max-w-3xl mx-auto"
                   >
                     <textarea
@@ -389,17 +399,62 @@ export function Thread() {
                         </div>
                       </div>
                       {stream.isLoading ? (
-                        <Button key="stop" onClick={() => stream.stop()}>
-                          <LoaderCircle className="w-4 h-4 animate-spin" />
-                          Cancel
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button className="transition-all shadow-md">
+                              Update Strategy <ChevronDown className="ml-2 h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                handleUpdate("interrupt");
+                              }}
+                            >
+                              Interrupt
+                              <span className="text-xs text-muted-foreground ml-2">
+                                (Stop current processing and handle new input)
+                              </span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                handleUpdate("reject");
+                              }}
+                            >
+                              Reject
+                              <span className="text-xs text-muted-foreground ml-2">
+                                (Ignore new input until current processing completes)
+                              </span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                handleUpdate("rollback");
+                              }}
+                            >
+                              Rollback
+                              <span className="text-xs text-muted-foreground ml-2">
+                                (Revert to last checkpoint and process new input)
+                              </span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                handleUpdate("enqueue");
+                              }}
+                            >
+                              Enqueue
+                              <span className="text-xs text-muted-foreground ml-2">
+                                (Process new input after current processing completes)
+                              </span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       ) : (
                         <Button
                           type="submit"
                           className="transition-all shadow-md"
                           disabled={isLoading || !input.trim()}
                         >
-                          {isLoading ? "Update" : "Send"}
+                          Send
                         </Button>
                       )}
                     </div>
