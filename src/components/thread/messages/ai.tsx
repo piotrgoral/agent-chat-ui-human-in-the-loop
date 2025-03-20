@@ -113,8 +113,9 @@ export function AssistantMessage({
       ) : (
         <div className="flex flex-col gap-2">
           {contentString.length > 0 && (
-            <div className="py-1">
-              <MarkdownText>{contentString}</MarkdownText>
+            <div className="border border-gray-200 rounded-lg overflow-hidden p-4 bg-gray-50">
+              <h3 className="font-medium text-gray-900 mb-2">Tool Result</h3>
+              <code className="text-sm block whitespace-pre-wrap">{String(contentString)}</code>
             </div>
           )}
 
@@ -135,8 +136,8 @@ export function AssistantMessage({
             <ThreadView interrupt={interrupt.value} />
           )}
           {interrupt?.value &&
-          !isAgentInboxInterruptSchema(interrupt.value) &&
-          isLastMessage ? (
+            !isAgentInboxInterruptSchema(interrupt.value) &&
+            isLastMessage ? (
             <GenericInterruptView interrupt={interrupt.value} />
           ) : null}
           <div
