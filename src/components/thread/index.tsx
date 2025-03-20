@@ -88,6 +88,7 @@ export function Thread() {
   );
   const [input, setInput] = useState("");
   const [firstTokenReceived, setFirstTokenReceived] = useState(false);
+  const [multitaskLoading, setMultitaskLoading] = useState(false);
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
 
   const stream = useStreamContext();
@@ -95,10 +96,14 @@ export function Thread() {
   const isLoading = stream.isLoading;
 
   const lastError = useRef<string | undefined>(undefined);
+  const isMultitaskOperation = useRef<boolean>(false);
 
   useEffect(() => {
     if (!stream.error) {
       lastError.current = undefined;
+      if (isMultitaskOperation.current) {
+        setMultitaskLoading(false);
+      }
       return;
     }
     try {
@@ -108,17 +113,22 @@ export function Thread() {
         return;
       }
 
-      // Message is defined, and it has not been logged yet. Save it, and send the error
-      lastError.current = message;
-      toast.error("An error occurred. Please try again.", {
-        description: (
-          <p>
-            <strong>Error:</strong> <code>{message}</code>
-          </p>
-        ),
-        richColors: true,
-        closeButton: true,
-      });
+      if (!isMultitaskOperation.current) {
+        // Message is defined, and it has not been logged yet. Save it, and send the error
+        lastError.current = message;
+        toast.error("An error occurred. Please try again.", {
+          description: (
+            <p>
+              <strong>Error:</strong> <code>{message}</code>
+            </p>
+          ),
+          richColors: true,
+          closeButton: true,
+        });
+      } else {
+        // Just log to console for multitask operations
+        console.error("Multitask operation error:", message);
+      }
     } catch {
       // no-op
     }
@@ -133,6 +143,7 @@ export function Thread() {
       messages[messages.length - 1].type === "ai"
     ) {
       setFirstTokenReceived(true);
+      setMultitaskLoading(false);
     }
 
     prevMessageLength.current = messages.length;
@@ -142,6 +153,7 @@ export function Thread() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
     setFirstTokenReceived(false);
+    isMultitaskOperation.current = false;
 
     const newHumanMessage: Message = {
       id: uuidv4(),
@@ -170,6 +182,8 @@ export function Thread() {
 
   const handleUpdate = (strategy: string) => {
     setFirstTokenReceived(false);
+    setMultitaskLoading(true);
+    isMultitaskOperation.current = true;
 
     const newHumanMessage: Message = {
       id: uuidv4(),
@@ -341,9 +355,9 @@ export function Thread() {
                       />
                     ),
                   )}
-                {isLoading && !firstTokenReceived && (
+                {(isLoading && !firstTokenReceived) || multitaskLoading ? (
                   <AssistantMessageLoading />
-                )}
+                ) : null}
               </>
             }
             footer={
@@ -401,8 +415,11 @@ export function Thread() {
                       {stream.isLoading ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button className="transition-all shadow-md">
-                              Update Strategy <ChevronDown className="ml-2 h-4 w-4" />
+                            <Button
+                              className="transition-all shadow-md"
+                              disabled={!input.trim()}
+                            >
+                              Interrupt <ChevronDown className="ml-2 h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
