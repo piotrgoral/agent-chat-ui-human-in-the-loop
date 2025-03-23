@@ -308,7 +308,7 @@ export function Thread() {
               >
                 <LangGraphLogoSVG width={32} height={32} />
                 <span className="text-xl font-semibold tracking-tight">
-                  Agent Chat
+                  Agent Chat x Open Deep Research
                 </span>
               </motion.button>
             </div>
@@ -366,7 +366,7 @@ export function Thread() {
                   <div className="flex gap-3 items-center">
                     <LangGraphLogoSVG className="flex-shrink-0 h-8" />
                     <h1 className="text-2xl font-semibold tracking-tight">
-                      Agent Chat
+                      Open-Deep-Research x Human-in-the-loop
                     </h1>
                   </div>
                 )}
@@ -392,7 +392,7 @@ export function Thread() {
                           form?.requestSubmit();
                         }
                       }}
-                      placeholder={isLoading ? "Update your message..." : "Type your message..."}
+                      placeholder={isLoading ? "Add feedback for the agent..." : "Type your message..."}
                       className="p-3.5 pb-0 border-none bg-transparent field-sizing-content shadow-none ring-0 outline-none focus:outline-none focus:ring-0 resize-none"
                     />
 
@@ -419,7 +419,7 @@ export function Thread() {
                               className="transition-all shadow-md"
                               disabled={!input.trim()}
                             >
-                              Interrupt <ChevronDown className="ml-2 h-4 w-4" />
+                              Feedback <ChevronDown className="ml-2 h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
